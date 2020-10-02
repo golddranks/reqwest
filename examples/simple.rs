@@ -2,7 +2,7 @@ extern crate reqwest;
 extern crate env_logger;
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
 
     println!("GET https://www.rust-lang.org");
 

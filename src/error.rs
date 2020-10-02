@@ -25,7 +25,7 @@ impl Error {
     /// The `'static` bounds allows using `downcast_ref` to check the
     /// details of the error.
     #[inline]
-    pub fn get_ref(&self) -> Option<&(StdError + 'static)> {
+    pub fn get_ref(&self) -> Option<&(dyn StdError + 'static)> {
         match self.kind {
             Kind::Http(ref e) => Some(e),
             Kind::UrlEncoded(ref e) => Some(e),
@@ -68,8 +68,8 @@ impl Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(ref url) = self.url {
-            try!(fmt::Display::fmt(url, f));
-            try!(f.write_str(": "));
+            fmt::Display::fmt(url, f)?;
+            f.write_str(": ")?;
         }
         match self.kind {
             Kind::Http(ref e) => fmt::Display::fmt(e, f),
@@ -81,27 +81,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl StdError for Error {
-    fn description(&self) -> &str {
-        match self.kind {
-            Kind::Http(ref e) => e.description(),
-            Kind::UrlEncoded(ref e) => e.description(),
-            Kind::Json(ref e) => e.description(),
-            Kind::TooManyRedirects => "Too many redirects",
-            Kind::RedirectLoop => "Infinite redirect loop",
-        }
-    }
-
-    fn cause(&self) -> Option<&StdError> {
-        match self.kind {
-            Kind::Http(ref e) => Some(e),
-            Kind::UrlEncoded(ref e) => Some(e),
-            Kind::Json(ref e) => Some(e),
-            Kind::TooManyRedirects |
-            Kind::RedirectLoop => None,
-        }
-    }
-}
+impl StdError for Error {}
 
 // pub(crate)
 
@@ -183,25 +163,6 @@ pub fn too_many_redirects(url: Url) -> Error {
         kind: Kind::TooManyRedirects,
         url: Some(url),
     }
-}
-
-macro_rules! try_ {
-    ($e:expr) => (
-        match $e {
-            Ok(v) => v,
-            Err(err) => {
-                return Err(::Error::from(::error::InternalFrom(err, None)));
-            }
-        }
-    );
-    ($e:expr, $url:expr) => (
-        match $e {
-            Ok(v) => v,
-            Err(err) => {
-                return Err(::Error::from(::error::InternalFrom(err, Some($url.clone()))));
-            }
-        }
-    )
 }
 
 #[test]

@@ -167,7 +167,7 @@ mod response;
 ///     .read_to_string(&mut result);
 /// ```
 pub fn get<T: IntoUrl>(url: T) -> ::Result<Response> {
-    let client = try!(Client::new());
+    let client = Client::new()?;
     client.get(url).send()
 }
 

@@ -59,7 +59,7 @@ pub fn read_to_string(mut body: Body) -> ::std::io::Result<String> {
 }
 
 enum Kind {
-    Reader(Box<Read + Send>, Option<u64>),
+    Reader(Box<dyn Read + Send>, Option<u64>),
     Bytes(Vec<u8>),
 }
 
